@@ -1,5 +1,3 @@
-//What does this producer do?
-//
 
 //Steps of implementation:- 
 // + Material methods: Material Config, Material reader.
