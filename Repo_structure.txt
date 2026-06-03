@@ -1,0 +1,32 @@
+ACTSPhase2InCMSSW/  UPDATE THE FILES IN EACH DIRECTORY 
+│
+├── plugins/
+│   ├── BuildFile.xml
+│   ├── Phase2GeometryAnalyzer.cc
+│   ├── Phase2GeometryProducer.cc
+│   ├── Phase2RecoGeometryProducer.cc
+│   ├── Phase2TrackRefitter.cc
+│
+├── src/
+│   ├── Phase2GeometryBuilder.cc
+│   ├── Phase2MaterialMapper.cc
+│
+├── interface/
+│   ├── Phase2GeometryBuilder.h
+│   ├── Phase2MaterialMapper.h
+│
+├── python/
+│   ├── phase2Geometry_cfi.py
+│   ├── phase2Geometry_cfg.py
+│
+├── test/
+│   ├── runPhase2_cfg.py
+│
+├── data/
+│   ├── cms_phase2.xml
+│   ├── material_maps.json
+│
+├── BuildFile.xml
+│
+├── README.md 
+
