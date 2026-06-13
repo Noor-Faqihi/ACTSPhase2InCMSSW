@@ -7,7 +7,6 @@
 // + Blueprint tree: Construct my layers and my volumes
 // + Construct the TrackingGeometry from the Blueprint 
 // + Material Decorator
-//
 
 //FrameWork Core header files 
 #include "FWCore/Framework/interface/one/EDProducer.h"
@@ -20,7 +19,7 @@
 #include "FWCore/Utilities/interface/typelookup.h"
 #include "FWCore/Framework/interface/MakerMacros.h" 
 
-#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h" //The file is not found somehow 
 #include "Geometry/Records/interface/ACTSTrackerGeometryRecord.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
@@ -103,8 +102,8 @@
 #include <vector>
 
 //Custom header files 
-#include "ACTSPhase2InCMSSW/interface/CMSDetectorElement.hpp" 
-#include "ACTSPhase2InCMSSW/interface/JsonMaterialWriter.hpp"
+#include "ACTSPhase2InCMSSW/ACTSPhase2InCMSSW/interface/CMSDetectorElement.hpp" 
+#include "ACTSPhase2InCMSSW/ACTSPhase2InCMSSW/interface/JsonMaterialWriter.hpp"
 
 using json = nlohmann::json;
 using KdtSurfacesDim2Bin100 = Acts::Experimental::KdtSurfaces<2u, 100u>; //Why bin = 100? 
@@ -131,6 +130,24 @@ struct MaterialConfig {
 
   bool readCachedSurfaceInformation = false;
 };
+
+class Phase2GeometryProducer : public edm::ESProducer {
+public:
+  explicit Phase2GeometryProducer(const edm::ParameterSet& ps);
+  ~Phase2GeometryProducer() override = default;
+  std::shared_ptr<TrackingGeometryWithDetEls> produce(const ACTSTrackerGeometryRecord& iRecord);
+
+private:
+  edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> trackerGeomToken_;
+  edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> trackerTopoToken_;
+  edm::ESGetToken<Alignments, TrackerAlignmentRcd> trackerAlignToken_;
+
+  bool saveObjfile_, saveSvgfile_, mapMaterial_;
+  std::string outputObjFile_, outputSvgFile_, materialFile_;
+  std::vector<double> rangeZ_;
+  std::vector<double> rangeR_;
+};
+
 
 /* //What do we need this sorting for? 
 template <typename element_t, typename index_t>
