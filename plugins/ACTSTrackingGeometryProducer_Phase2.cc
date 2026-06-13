@@ -759,13 +759,13 @@ ACTSTrackingGeometryProducer_Phase2::produce(const ACTSTrackerGeometryRecord& iR
   // ============================================================
   // Optional: decorate with pre-mapped material
   // ============================================================
-  std::shared_ptr<const Acts::IMaterialDecorator> matDecorator = nullptr;
+/*   std::shared_ptr<const Acts::IMaterialDecorator> matDecorator = nullptr;
   if (!materialFile_.empty() && !mapMaterial_) {
     Acts::MaterialMapJsonConverter::Config matCfg; //Changed form Acts::JsonMaterialDecorator::Config since Config is not a member of this class 
     matCfg.inputMaterialTracks = materialFile_; //Changed from input 
     matDecorator = std::make_shared<Acts::JsonMaterialDecorator>(matCfg, Acts::Logging::INFO);
     std::cout << "[Phase2] Loaded material map from " << materialFile_ << "\n";
-  }
+  } */
 
   // ============================================================
   // Disc layer builder lambda (shared by IT forward and OT endcap)
@@ -813,7 +813,8 @@ ACTSTrackingGeometryProducer_Phase2::produce(const ACTSTrackerGeometryRecord& iR
   //            ├─ T2B       (CylinderContainer, AxisR) — 6 cylinders
   //            └─ T2E_Pos   (CylinderContainer, AxisZ) — 5 discs
   // ============================================================
-  auto blueprint = std::make_unique<Acts::Experimental::Blueprint>(); //Add argument of cfg 
+  Acts::Experimental::Blueprint::Config blueprintCfg;
+  auto blueprint = std::make_unique<Acts::Experimental::Blueprint>(blueprintCfg); 
   Acts::Transform3 base{Acts::Transform3::Identity()};
 
   blueprint->addCylinderContainer("Tracker", Acts::AxisDirection::AxisZ,
@@ -935,15 +936,24 @@ ACTSTrackingGeometryProducer_Phase2::produce(const ACTSTrackerGeometryRecord& iR
   // ============================================================
   // Construct the Acts::TrackingGeometry from the Blueprint
   // ============================================================
-  auto trackingGeometry = (*blueprint).construct({}, geoCtx, Acts::Logging::INFO,
-                                                  matDecorator.get());
-
+  Acts::Experimental::BlueprintOptions BluePrint_otp; 
+  auto logger = Acts::getDefaultLogger("UnitTests", Acts::Logging::INFO);
+  auto trackingGeometry = (*blueprint).construct(BluePrint_otp, geoCtx, *logger);
+  //auto trackingGeometry = (*blueprint).construct(BluePrint_otp, geoCtx, Acts::Logging::INFO, matDecorator.get());
+  //std::shared_ptr<Acts::TrackingGeometry> trackingGeometry = std::move(root->construct(blueprint, geoCtx, *logger)); 
   std::cout << "[Phase2] TrackingGeometry constructed successfully.\n";
+
+  //From Lorenzo's Code                                                
+  /* Acts::GeometryContext gctx;
+  auto logger = Acts::getDefaultLogger("UnitTests", Acts::Logging::INFO);
+  Acts::Experimental::BlueprintOptions BluePrint_otp;
+  std::shared_ptr<Acts::TrackingGeometry> trackingGeometry = std::move(root->construct(BluePrint_otp, gctx, *logger));
+  std::cout << "[Phase2] TrackingGeometry constructed successfully.\n"; */
 
   // ============================================================
   // Optional: material mapping workflow
   // ============================================================
-  if (mapMaterial_) {
+ /*  if (mapMaterial_) {
     std::cout << "[Phase2] Starting material mapping...\n";
     // 1. Collect all surfaces that carry a material proxy
     MatSurfaceSelector sel;
@@ -996,7 +1006,7 @@ ACTSTrackingGeometryProducer_Phase2::produce(const ACTSTrackerGeometryRecord& iR
     // ActsPlugins::TrackingGeometrySvgConverter::Config svgCfg;
     // ... configure and write to outputSvgFile_
     std::cout << "[Phase2] SVG output not yet wired — configure svgCfg above.\n";
-  }
+  } */
 
   // ============================================================
   // Pack and return
