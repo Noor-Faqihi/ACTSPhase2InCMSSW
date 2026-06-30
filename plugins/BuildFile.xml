@@ -11,6 +11,7 @@
 <use name="CondFormats/SiStripObjects"/>
 <use name="DetectorDescription/Core"/>
 <use name="ROOT"/>
+<use name="ACTSPhase2InCMSSW/ACTSPhase2InCMSSW"/> //new 
 
 <use name="acts-core"/>
 <use name="acts-json"/>
