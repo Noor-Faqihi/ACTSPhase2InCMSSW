@@ -1,4 +1,4 @@
-
+/* 
 //Steps of implementation:- 
 // + Material methods: Material Config, Material reader.
 // + SelectActiveSurfaces_PhaseII()
@@ -148,8 +148,7 @@ private:
   std::vector<double> rangeR_;
 };
 
-
-/* //What do we need this sorting for? 
+ //What do we need this sorting for? 
 template <typename element_t, typename index_t>
 void stableSort(index_t numElements, const element_t* elements,
                 index_t* sortedIndices, Bool_t sortDescending) {
@@ -584,4 +583,4 @@ struct MyMaterialWriterCfg{
   std::
 } */
 
-DEFINE_FWK_EVENTSETUP_MODULE(Phase2GeometryProducer);
+//DEFINE_FWK_EVENTSETUP_MODULE(Phase2GeometryProducer); */

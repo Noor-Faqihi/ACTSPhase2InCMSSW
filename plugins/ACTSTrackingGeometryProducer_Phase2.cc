@@ -735,7 +735,7 @@ ACTSTrackingGeometryProducer_Phase2::produce(const ACTSTrackerGeometryRecord& iR
     bounds 
 ); */
 
-auto surface = Acts::Surface::makeShared<Acts::PlaneSurface>(Acts:: Transform3 transform1, bounds);
+auto surface = Acts::Surface::makeShared<Acts::PlaneSurface>(t , bounds);
 
 
 
