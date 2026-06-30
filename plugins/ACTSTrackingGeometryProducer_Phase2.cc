@@ -13,8 +13,6 @@
 /// #     - T2B   : 6 barrel layers  (subdetId=4, PS + 2S stacked modules)             #
 /// #     - T2E   : 5 endcap discs   (subdetId=5, PS inner rings + 2S outer rings)     #
 /// #                                                                                   #
-/// # NOTE: Z/R boundary values in SelectActiveSurfaces_Phase2 are approximate.        #
-/// # Tune them against your specific CMSSW geometry tag (e.g. D98, D110, D114).       #
 /// #                                                                                   #
 /// # Adapted from ACTSTrackingGeometryProducer.cc (Phase-1) by ldamenti.              #
 /// ######################################################################################
@@ -730,13 +728,37 @@ ACTSTrackingGeometryProducer_Phase2::produce(const ACTSTrackerGeometryRecord& iR
     }
 
     // ----- Build the Acts::CMSDetectorElement -----
-    auto detEl = std::make_shared<Acts::CMSDetectorElement>(
-        //ActsPlugins::TGeoDetectorElement::identifier(ID.rawId()),
+
+    // 1. Build the surface first (combines your transform + bounds)
+/* auto surface = Acts::Surface::makeShared<Acts::PlaneSurface>(
+    std::make_shared<Acts::Transform3>(t),
+    bounds 
+); */
+
+auto surface = Acts::Surface::makeShared<Acts::PlaneSurface>(Acts:: Transform3 transform1, bounds);
+
+
+
+// 2. Fill the struct
+Acts::CMSDetectorElementData detData;
+detData.surf_        = surface;
+detData.thickness_   = 0.03 * Acts::UnitConstants::mm;
+detData.trans_       = t;              // Transform3 by value, not shared_ptr
+detData.detID_       = ID.rawId();     // ← this is where your commented-out ID goes!
+detData.subDetector_ = "Phase2Tracker"; // or "Pixel", "OT", etc. — whatever fits your geometry
+
+DetEl_vector.push_back(std::make_shared<Acts::CMSDetectorElement>(detData)); 
+
+//auto detEl = std::make_shared<Acts::CMSDetectorElement>(detData);
+//DetEl_vector.push_back(detEl);
+
+/*     auto detEl = std::make_shared<Acts::CMSDetectorElement>(
+        ActsPlugins::TGeoDetectorElement::identifier(ID.rawId()),
         std::make_shared<Acts::Transform3>(t),
         bounds,
         0.03 * Acts::UnitConstants::mm  // nominal thickness (300 µm pixel / 300 µm strip)
     );
-    DetEl_vector.push_back(detEl);
+    DetEl_vector.push_back(detEl); */
   } // end loop over detUnits
  
   std::cout << "[Phase2] Created " << DetEl_vector.size() << " ACTS detector elements.\n";
