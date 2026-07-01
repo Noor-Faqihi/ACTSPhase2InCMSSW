@@ -1,20 +1,20 @@
 /// ######################################################################################
-/// # Plugin used to convert the CMSSW Phase-2 detector elements into ACTS detector     #
-/// # elements and build the ACTS TrackingGeometry for the CMS Phase-2 tracker.         #
-/// #                                                                                   #
-/// # Subdetectors covered:                                                             #
-/// #   Inner Tracker (IT):                                                             #
-/// #     - TBPX  : 4 barrel layers  (PixelSubdetector::PixelBarrel, subdetId=1)       #
-/// #     - TFPX  : 12 forward discs (PixelSubdetector::PixelEndcap, subdetId=2,       #
-/// #               disk <= 12)                                                         #
-/// #     - TEPX  : 4 extended discs (PixelSubdetector::PixelEndcap, subdetId=2,       #
-/// #               disk > 12)                                                          #
-/// #   Outer Tracker (OT):                                                             #
-/// #     - T2B   : 6 barrel layers  (subdetId=4, PS + 2S stacked modules)             #
-/// #     - T2E   : 5 endcap discs   (subdetId=5, PS inner rings + 2S outer rings)     #
-/// #                                                                                   #
-/// #                                                                                   #
-/// # Adapted from ACTSTrackingGeometryProducer.cc (Phase-1) by ldamenti.              #
+/// # Plugin used to convert the CMSSW Phase-2 detector elements into ACTS detector     
+/// # elements and build the ACTS TrackingGeometry for the CMS Phase-2 tracker.         
+/// #                                                                                   
+/// # Subdetectors covered:                                                             
+/// #   Inner Tracker (IT):                                                            
+/// #     - TBPX  : 4 barrel layers  (PixelSubdetector::PixelBarrel, subdetId=1)       
+/// #     - TFPX  : 12 forward discs (PixelSubdetector::PixelEndcap, subdetId=2,       
+/// #               disk <= 12)                                                         
+/// #     - TEPX  : 4 extended discs (PixelSubdetector::PixelEndcap, subdetId=2,       
+/// #               disk > 12)                                                          
+/// #   Outer Tracker (OT):                                                             
+/// #     - T2B   : 6 barrel layers  (subdetId=4, PS + 2S stacked modules)             
+/// #     - T2E   : 5 endcap discs   (subdetId=5, PS inner rings + 2S outer rings)     
+/// #                                                                                   
+/// #                                                                                   
+/// # Adapted from ACTSTrackingGeometryProducer.cc (Phase-1) by ldamenti.              
 /// ######################################################################################
 
 // ===== CMSSW Framework =====
@@ -154,6 +154,7 @@ namespace Phase2OT {
 // which sensor of a PS/2S stack is the "inner" (closer to beam) one.
 // ==================================================================================
 //This is for debugging purposes 
+
 int innerOuterFromOrientation(const TrackerTopology& tTopo,
                                DetId detId,
                                const GlobalPoint& pos,
@@ -174,7 +175,7 @@ struct TrackingGeometryWithDetEls {
 TYPELOOKUP_DATA_REG(TrackingGeometryWithDetEls);
 
 // ==================================================================================
-//  MATERIAL INFRASTRUCTURE  (identical to Phase-1 version)
+//   Material Methods 
 // ==================================================================================
 
 struct MaterialConfig {
@@ -735,6 +736,7 @@ ACTSTrackingGeometryProducer_Phase2::produce(const ACTSTrackerGeometryRecord& iR
     bounds 
 ); */
 
+//The transform is intrinsic to the PlanesSurface 
 auto surface = Acts::Surface::makeShared<Acts::PlaneSurface>(t , bounds);
 
 
