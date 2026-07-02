@@ -9,7 +9,7 @@ process.ACTSTrackingGeometryProducer_Phase2 = cms.ESProducer("ACTSTrackingGeomet
 
 process.ACTSTrackingGeometryProducer_Phase2 = cms.ESProducer(
     "ACTSTrackingGeometryProducer_Phase2",
-    saveObjfile = cms.untracked.bool(False), 
+    saveObjfile = cms.untracked.bool(True), 
     saveSvgfile = cms.untracked.bool(False),
     mapMaterial = cms.untracked.bool(False),
     outputObjFile = cms.untracked.string("outputObjFile"),
@@ -18,5 +18,6 @@ process.ACTSTrackingGeometryProducer_Phase2 = cms.ESProducer(
     rangeZ = cms.untracked.vdouble(0,1),
     rangeR = cms.untracked.vdouble(0,1)
 )
+# Acts::RangeXD<2, double, std::array> Range({0, 0}, {0, 0});
 
 #process.schedule = cms.Schedule(process.path)

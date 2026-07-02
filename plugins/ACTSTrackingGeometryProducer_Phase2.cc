@@ -215,6 +215,9 @@ public:
                m_entryNumbers.data(), false);
   }
 
+  //Debugging 
+  std::cout<<"Please work"; 
+
   std::unordered_map<std::size_t, Acts::RecordedMaterialTrack> read(std::size_t evNum) {
     mtrackCollection.clear();
     for (std::size_t ib = 0; ib < m_batchSize; ++ib) {
@@ -236,7 +239,7 @@ private:
 };
 
 struct myContext {
-  Acts::GeometryContext    geoContext;
+  Acts::GeometryContext    geoContext; //convention: gctx 
   Acts::MagneticFieldContext magFieldContext;
   std::size_t EvNumber;
 };
@@ -254,7 +257,7 @@ void writeSurfacesObj(const std::vector<std::shared_ptr<Acts::Surface>>& surface
   }
   obj.write(fileName);
   obj.clear();
-}
+} //how is it compiling without errors when there is no semicolon??? 
 
 Acts::Transform3 GenerateTranslation(double dx, double dy, double dz) {
   return Acts::Transform3::Identity() * Acts::Translation3{Acts::Vector3{dx, dy, dz}};
@@ -277,8 +280,7 @@ Acts::Transform3 GenerateTranslation(double dx, double dy, double dz) {
 // NOTE: Boundary values are derived from the Phase-2 TDR (CERN-LHCC-2017-009)
 // and should be verified against your specific geometry tag.
 // ==================================================================================
-std::vector<std::shared_ptr<Acts::Surface>>
-SelectActiveSurfaces_Phase2(const KdtSurfacesDim2Bin100& surfaces,
+std::vector<std::shared_ptr<Acts::Surface>> SelectActiveSurfaces_Phase2(const KdtSurfacesDim2Bin100& surfaces,
                              const std::string& Layer_name) {
 
   Acts::RangeXD<2, double, std::array> Range({0, 0}, {0, 0});
@@ -603,10 +605,13 @@ bool isInverse(const Eigen::MatrixXd& A, const Eigen::MatrixXd& B, double eps = 
 // ==================================================================================
 //  ACTSTrackingGeometryProducer_Phase2
 // ==================================================================================
-class ACTSTrackingGeometryProducer_Phase2 : public edm::ESProducer {
+class ACTSTrackingGeometryProducer_Phase2 : public edm::ESProducer { //It was an ESProducer 
 public:
   explicit ACTSTrackingGeometryProducer_Phase2(const edm::ParameterSet& ps);
   ~ACTSTrackingGeometryProducer_Phase2() override = default;
+  static void debug(){
+    std::cout<<"Help"; 
+  }; 
 
   std::shared_ptr<TrackingGeometryWithDetEls>produce(const ACTSTrackerGeometryRecord& iRecord);
 
@@ -746,7 +751,7 @@ Acts::CMSDetectorElementData detData;
 detData.surf_        = surface;
 detData.thickness_   = 0.03 * Acts::UnitConstants::mm;
 detData.trans_       = t;              // Transform3 by value, not shared_ptr
-detData.detID_       = ID.rawId();     // ← this is where your commented-out ID goes!
+detData.detID_       = ID.rawId();     // this is where commented-out ID goes
 detData.subDetector_ = "Phase2Tracker"; // or "Pixel", "OT", etc. — whatever fits your geometry
 
 DetEl_vector.push_back(std::make_shared<Acts::CMSDetectorElement>(detData)); 
