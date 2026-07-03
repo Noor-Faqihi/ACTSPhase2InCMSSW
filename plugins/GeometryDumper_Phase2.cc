@@ -15,31 +15,56 @@
 //         Created:  Fri, 03 Jul 2026 13:43:16 GMT
 //
 //
-
-// system include files
-#include <memory>
-
-// user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
+//FWCore Dependencies 
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
-
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
-
+#include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/Utilities/interface/InputTag.h"
-#include "DataFormats/TrackReco/interface/Track.h"
-#include "DataFormats/TrackReco/interface/TrackFwd.h"
-//
-// class declaration
-//
+#include "FWCore/Utilities/interface/ESGetToken.h"
+
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
+#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "Geometry/TrackerNumberingBuilder/interface/GeometricDet.h"
+#include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
+#include "Geometry/Records/interface/TrackerTopologyRcd.h"
+#include "DataFormats/GeometrySurface/interface/RectangularPlaneBounds.h"
+#include "DataFormats/GeometrySurface/interface/TrapezoidalPlaneBounds.h"
+#include "DetectorDescription/Core/interface/DDExpandedView.h"
+
+#include "DataFormats/TrackerCommon/interface/PixelBarrelName.h"
+#include "DataFormats/TrackerCommon/interface/PixelEndcapName.h"
+#include "DataFormats/SiStripDetId/interface/StripSubdetector.h"
+#include "DataFormats/DetId/interface/DetId.h"
+#include "DetectorDescription/Core/interface/DDRotationMatrix.h"
+#include "CLHEP/Units/GlobalSystemOfUnits.h"
+#include "Math/RotationZ.h"
+
+#include "Math/Rotation3D.h"
+#include "Math/AxisAngle.h"
+
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "Geometry/Records/interface/IdealGeometryRecord.h"
+#include "DetectorDescription/DDCMS/interface/DDCompactView.h"
+#include "DetectorDescription/DDCMS/interface/DDFilteredView.h"
+
+
+#include <iterator>    
+#include <vector>      
+
+#include <fstream>
+#include <iomanip>
+#include <nlohmann/json.hpp> 
+
+using json = nlohmann::json;
+
+auto clean_p2 = [](double val) {
+  return std::abs(val) < 1e-4 ? 0.0 : val;
+};
 
 // If the analyzer does not use TFileService, please remove
 // the template argument to the base class so the class inherits
 // from  edm::one::EDAnalyzer<>
 // This will improve performance in multithreaded jobs.
-
-using reco::TrackCollection;
 
 class GeometryDumper_Phase2 : public edm::one::EDAnalyzer<> {
 public:
@@ -97,13 +122,14 @@ void GeometryDumper_Phase2::analyze(const edm::Event& iEvent, const edm::EventSe
     // do something with track parameters, e.g, plot the charge.
     // int charge = track.charge();
     DetId detid = det -> geographicalId(); 
-    auto surface = det = det->surface(); 
+    auto surface = det->surface(); 
     json detJson;
 
     detJson["geo_id"] = detid.rawId(); 
     detJson["type"] = "PlaneSurface"; 
 
     auto bounds = dynamic_cast<const RectangularPlaneBounds*>(&surface.bounds()); 
+
     if (bounds){ //I dont get it, how is this a boolean 
       detJson["bounds"]["type"] = "RectangleBounds"; 
       detJson["bounds"]["values"] = {
@@ -256,7 +282,7 @@ void GeometryDumper_Phase2::analyze(const edm::Event& iEvent, const edm::EventSe
 
   file.close(); 
 
-}
+};
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(GeometryDumper_Phase2);
