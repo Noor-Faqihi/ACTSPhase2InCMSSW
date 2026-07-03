@@ -41,23 +41,26 @@
 
 using reco::TrackCollection;
 
-class GeometryDumper_Phase2 : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class GeometryDumper_Phase2 : public edm::one::EDAnalyzer<> {
 public:
-  explicit GeometryDumper_Phase2(const edm::ParameterSet&);
-  ~GeometryDumper_Phase2() override;
+  explicit GeometryDumper_Phase2(const edm::ParameterSet& ps);
+  ~GeometryDumper_Phase2() override = default;
 
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
+  //static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
-  void beginJob() override;
-  void analyze(const edm::Event&, const edm::EventSetup&) override;
-  void endJob() override;
+  //void beginJob() override;
+  //void endJob() override;
 
   // ----------member data ---------------------------
-  edm::EDGetTokenT<TrackCollection> tracksToken_;  //used to select what tracks to read from configuration file
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-  edm::ESGetToken<SetupData, SetupRecord> setupToken_;
-#endif
+  edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> trackerGeomToken_;
+  edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> trackerTopoToken_;
+  edm::ESGetToken<GeometricDet, IdealGeometryRecord> geomDetToken_;
+  edm::ESGetToken<cms::DDCompactView, IdealGeometryRecord> ddCompactViewToken_;
+
+  std::string outputFile_;
+
 };
 
 //
@@ -71,65 +74,188 @@ private:
 //
 // constructors and destructor
 //
-GeometryDumper_Phase2 ::GeometryDumper_Phase2(const edm::ParameterSet& iConfig)
-    : tracksToken_(consumes<TrackCollection>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))) {
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-  setupDataToken_ = esConsumes<SetupData, SetupRecord>();
-#endif
-  //now do what ever initialization is needed
-}
-
-GeometryDumper_Phase2 ::~GeometryDumper_Phase2() {
-  // do anything here that needs to be done at desctruction time
-  // (e.g. close files, deallocate resources etc.)
-  //
-  // please remove this method altogether if it would be left empty
-}
+GeometryDumper_Phase2::GeometryDumper_Phase2(const edm::ParameterSet& ps)
+ : trackerGeomToken_(esConsumes()),
+      trackerTopoToken_(esConsumes()),
+      geomDetToken_(esConsumes()),
+      ddCompactViewToken_(esConsumes<cms::DDCompactView, IdealGeometryRecord>()),
+      outputFile_(ps.getUntrackedParameter<std::string>("outputFile", "geometry.json")) {}
 
 //
 // member functions
-//
 
 // ------------ method called for each event  ------------
 void GeometryDumper_Phase2::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
 
-  for (const auto& track : iEvent.get(tracksToken_)) {
+  const TrackerGeometry& trackerGeom = iSetup.getData(trackerGeomToken_);
+  const TrackerTopology& tTopo = iSetup.getData(trackerTopoToken_);
+
+  json surfaces = json::array();
+
+  for (const auto& det : trackerGeom.dets()) {
     // do something with track parameters, e.g, plot the charge.
     // int charge = track.charge();
+    DetId detid = det -> geographicalId(); 
+    auto surface = det = det->surface(); 
+    json detJson;
+
+    detJson["geo_id"] = detid.rawId(); 
+    detJson["type"] = "PlaneSurface"; 
+
+    auto bounds = dynamic_cast<const RectangularPlaneBounds*>(&surface.bounds()); 
+    if (bounds){ //I dont get it, how is this a boolean 
+      detJson["bounds"]["type"] = "RectangleBounds"; 
+      detJson["bounds"]["values"] = {
+        bounds->width()/ 2 * 10, //cm to mm 
+        bounds->length() / 2 * 10,
+        -bounds->width() / 2 * 10,
+        -bounds->length() / 2 * 10
+      };
+
+    }
+    else{
+          auto trap = dynamic_cast<const TrapezoidalPlaneBounds*>(&surface.bounds());
+      auto params = trap->parameters(); // half bottom edge, half top edge, half thickness, half apothem
+      detJson["bounds"]["type"] = "TrapezoidBounds";
+      detJson["bounds"]["values"] = {   
+          params[3] * 10, // cm to mm
+          params[3] * 10, 
+          (params[0] + params[1]) / 2 * 10, 
+          0.0
+    }; 
+
+  }
+  // Transform (definitions)
+    const auto& pos = surface.position();
+    const auto& rot = surface.rotation();
+    bool notRotated = true;
+
+    // TEST:
+    const GeomDet* detPtr = trackerGeom.idToDet(detid);
+    const auto subDet = detPtr->subDetector();
+    //std::cout << name << std::endl;  // Phase2OTEndcap, Phase2OTBarrel, Phase2PixelEndcap, Phase2PixelBarrel
+    // *****
+    
+    // TrackerTopology info 
+    if (subDet == GeomDetEnumerators::P2PXB) {
+      PixelBarrelName pb(detid, &tTopo);
+      detJson["topology"] = {
+        {"SubDet", "PixelBarrel"},
+        {"geo_id", detid.rawId()},
+        {"layer", pb.layerName()},
+        {"ladder", pb.ladderName()},
+        {"module", pb.moduleName()}
+      };
+      notRotated = true;
+    } else if (subDet == GeomDetEnumerators::P2PXEC) {
+      PixelEndcapName pe(detid, &tTopo);
+      detJson["topology"] = {
+        {"SubDet", "PixelEndcap"},
+        {"geo_id", detid.rawId()},
+        {"disk", pe.diskName()},
+        {"blade", pe.bladeName()},
+        {"panel", pe.pannelName()},
+        {"module", pe.moduleType()}
+      };
+      notRotated = true;
+    }else if (subDet == GeomDetEnumerators::P2OTB) {
+      detJson["topology"] = {
+        {"SubDet", "OTBarrel"},
+        {"geo_id", detid.rawId()},
+        {"layer", tTopo.layer(detid)},
+        {"side", tTopo.side(detid)},       // 1=backward, 2=forward
+        {"string", tTopo.tibString(detid)},
+        {"stereo", tTopo.isStereo(detid)}
+      };
+      notRotated = true;
+    }
+    else if (subDet == GeomDetEnumerators::P2OTEC) {
+      detJson["topology"] = {
+        {"SubDet", "OTEndcap"},
+        {"geo_id", detid.rawId()},
+        {"side", tTopo.side(detid)},
+        {"wheel", tTopo.tecWheel(detid)},
+        {"ring", tTopo.tecRing(detid)},
+        {"petal", tTopo.tecPetalNumber(detid)},
+        {"petalSide", tTopo.tecPetalInfo(detid)},  // 1=backward, 2=forward
+        {"stereo", tTopo.isStereo(detid)}
+      };
+	notRotated = true; // No rotation is needed here!
+    }
+    
+    // Load transformation
+    detJson["transform"]["translation"] = {pos.x()*10, pos.y()*10, pos.z()*10}; // cm to mm
+/*
+    // row-major order 
+    detJson["transform"]["rotation"] = {
+      clean_p2(rot.xx()), clean_p2(rot.xy()), clean_p2(rot.xz()),
+      clean_p2(rot.yx()), clean_p2(rot.yy()), clean_p2(rot.yz()),
+      clean_p2(rot.zx()), clean_p2(rot.zy()), clean_p2(rot.zz())
+    };
+*/
+
+    if(notRotated){
+      // column-major order 
+      detJson["transform"]["rotation"] = {
+        clean_p2(rot.xx()), clean_p2(rot.yx()), clean_p2(rot.zx()),  // first column
+        clean_p2(rot.xy()), clean_p2(rot.yy()), clean_p2(rot.zy()),  // second column
+        clean_p2(rot.xz()), clean_p2(rot.yz()), clean_p2(rot.zz())   // third column
+      };
+    }
+    else{ // For endcap modules, a 90deg rotation (anticlockwise) is applied to the matrix
+      // M = rot globale originale
+      float M[9] = {
+          rot.xx(), rot.yx(), rot.zx(),
+          rot.xy(), rot.yy(), rot.zy(),
+          rot.xz(), rot.yz(), rot.zz()
+      };
+
+      // Rz = rotazione di +90° attorno a Z (nel frame LOCALE del modulo)
+      float Rz[9] = {
+          0, -1, 0,
+          1,  0, 0,
+          0,  0, 1
+      };
+
+      // M2 = M * Rz  → ruota attorno a Z locale
+      float M2[9];
+      for (int col = 0; col < 3; ++col) {
+        for (int row = 0; row < 3; ++row) {
+          M2[row + 3 * col] =
+              M[row + 3 * 0] * Rz[0 + 3 * col] +
+              M[row + 3 * 1] * Rz[1 + 3 * col] +
+              M[row + 3 * 2] * Rz[2 + 3 * col];
+        }
+      }
+
+
+      std::cout << "Original X: (" << M[0] << ", " << M[3] << ", " << M[6] << ")\n";
+      std::cout << "Rotated  X: (" << clean_p2(M2[0]) << ", " << clean_p2(M2[3]) << ", " << clean_p2(M2[6]) << ")\n";
+
+      std::cout << "Original Y: (" << M[1] << ", " << M[4] << ", " << M[7] << ")\n";
+      std::cout << "Rotated  Y: (" << clean_p2(M2[1]) << ", " << clean_p2(M2[4]) << ", " << clean_p2(M2[7]) << ")\n";
+
+      
+      detJson["transform"]["rotation"] = {
+        clean_p2(M2[0]), clean_p2(M2[1]), clean_p2(M2[2]),  // first column
+        clean_p2(M2[3]), clean_p2(M2[4]), clean_p2(M2[5]),  // second column
+        clean_p2(M2[6]), clean_p2(M2[7]), clean_p2(M2[8])   // third column
+      };
+    }
+
+
+    surfaces.push_back(detJson);
   }
 
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-  // if the SetupData is always needed
-  auto setup = iSetup.getData(setupToken_);
-  // if need the ESHandle to check if the SetupData was there or not
-  auto pSetup = iSetup.getHandle(setupToken_);
-#endif
-}
+  json output;
+  output["surfaces"] = surfaces;
 
-// ------------ method called once each job just before starting event loop  ------------
-void GeometryDumper_Phase2::beginJob() {
-  // please remove this method if not needed
-}
+  std::ofstream file(outputFile_);
+  file << std::setw(2) << output << std::endl;
 
-// ------------ method called once each job just after ending the event loop  ------------
-void GeometryDumper_Phase2::endJob() {
-  // please remove this method if not needed
-}
+  file.close(); 
 
-// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void GeometryDumper_Phase2::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
-  //The following says we do not know what parameters are allowed so do no validation
-  // Please change this to state exactly what you do use, even if it is no parameters
-  edm::ParameterSetDescription desc;
-  desc.setUnknown();
-  descriptions.addDefault(desc);
-
-  //Specify that only 'tracks' is allowed
-  //To use, remove the default given above and uncomment below
-  //edm::ParameterSetDescription desc;
-  //desc.addUntracked<edm::InputTag>("tracks", edm::InputTag("ctfWithMaterialTracks"));
-  //descriptions.addWithDefaultLabel(desc);
 }
 
 //define this as a plug-in
