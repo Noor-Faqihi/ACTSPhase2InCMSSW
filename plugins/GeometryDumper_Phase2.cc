@@ -21,6 +21,7 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/ESGetToken.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
@@ -30,6 +31,7 @@
 #include "DataFormats/GeometrySurface/interface/RectangularPlaneBounds.h"
 #include "DataFormats/GeometrySurface/interface/TrapezoidalPlaneBounds.h"
 #include "DetectorDescription/Core/interface/DDExpandedView.h"
+
 
 #include "DataFormats/TrackerCommon/interface/PixelBarrelName.h"
 #include "DataFormats/TrackerCommon/interface/PixelEndcapName.h"
@@ -89,16 +91,6 @@ private:
 };
 
 //
-// constants, enums and typedefs
-//
-
-//
-// static data member definitions
-//
-
-//
-// constructors and destructor
-//
 GeometryDumper_Phase2::GeometryDumper_Phase2(const edm::ParameterSet& ps)
  : trackerGeomToken_(esConsumes()),
       trackerTopoToken_(esConsumes()),
@@ -106,7 +98,6 @@ GeometryDumper_Phase2::GeometryDumper_Phase2(const edm::ParameterSet& ps)
       ddCompactViewToken_(esConsumes<cms::DDCompactView, IdealGeometryRecord>()),
       outputFile_(ps.getUntrackedParameter<std::string>("outputFile", "geometry.json")) {}
 
-//
 // member functions
 
 // ------------ method called for each event  ------------
@@ -282,7 +273,7 @@ void GeometryDumper_Phase2::analyze(const edm::Event& iEvent, const edm::EventSe
 
   file.close(); 
 
-};
+ };
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(GeometryDumper_Phase2);
