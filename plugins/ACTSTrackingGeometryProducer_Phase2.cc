@@ -138,6 +138,8 @@ const std::array<Acts::AxisDirection, 2UL> casts{Acts::AxisDirection::AxisZ,
 using DetElVect = std::vector<std::shared_ptr<Acts::CMSDetectorElement>>;
 TYPELOOKUP_DATA_REG(Alignments);
 
+  extern ostream cout << "[Phase2] Created " << DetEl_vector.size() << " ACTS detector elements.\n";
+
 // ==================================================================================
 // Phase-2 Outer Tracker subdetector IDs
 // NOTE: In Phase-2 CMSSW the OT reuses the numeric subdet slots previously held
@@ -215,8 +217,6 @@ public:
                m_entryNumbers.data(), false);
   }
 
-  //Debugging 
-  std::cout<<"Please work"; 
 
   std::unordered_map<std::size_t, Acts::RecordedMaterialTrack> read(std::size_t evNum) {
     mtrackCollection.clear();
@@ -514,7 +514,7 @@ public:
       throw std::invalid_argument("Missing material validater.");
   }
   std::unordered_map<std::size_t, Acts::RecordedMaterialTrack>
-  execute(const myContext& context, bool debug = false) {
+  execute(const myContext& context, bool debug = true) {
     RandomEngine rng(1234567890u + context.EvNumber);
     std::uniform_real_distribution<double> phiDist(m_cfg.phiRange.first, m_cfg.phiRange.second);
     std::uniform_real_distribution<double> etaDist(m_cfg.etaRange.first, m_cfg.etaRange.second);
@@ -609,10 +609,6 @@ class ACTSTrackingGeometryProducer_Phase2 : public edm::ESProducer { //It was an
 public:
   explicit ACTSTrackingGeometryProducer_Phase2(const edm::ParameterSet& ps);
   ~ACTSTrackingGeometryProducer_Phase2() override = default;
-  static void debug(){
-    std::cout<<"Help"; 
-  }; 
-
   std::shared_ptr<TrackingGeometryWithDetEls>produce(const ACTSTrackerGeometryRecord& iRecord);
 
 private:
@@ -643,6 +639,7 @@ ACTSTrackingGeometryProducer_Phase2::ACTSTrackingGeometryProducer_Phase2(
   trackerTopoToken_  = cc.consumes();
   trackerAlignToken_ = cc.consumes();
 }
+
 
 // ==================================================================================
 // produce()
@@ -979,6 +976,7 @@ DetEl_vector.push_back(std::make_shared<Acts::CMSDetectorElement>(detData));
   std::shared_ptr<Acts::TrackingGeometry> trackingGeometry = std::move(root->construct(BluePrint_otp, gctx, *logger));
   std::cout << "[Phase2] TrackingGeometry constructed successfully.\n"; */
 
+  // Produce a material less geometry then add the material 
   // ============================================================
   // Optional: material mapping workflow
   // ============================================================
@@ -1044,7 +1042,7 @@ DetEl_vector.push_back(std::make_shared<Acts::CMSDetectorElement>(detData));
   result->detElements      = std::move(DetEl_vector);
   result->trackingGeometry = std::move(trackingGeometry);
   return result;
-}
+};
 
 // ==================================================================================
 // Registration
