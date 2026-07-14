@@ -138,8 +138,6 @@ const std::array<Acts::AxisDirection, 2UL> casts{Acts::AxisDirection::AxisZ,
 using DetElVect = std::vector<std::shared_ptr<Acts::CMSDetectorElement>>;
 TYPELOOKUP_DATA_REG(Alignments);
 
-  extern ostream cout << "[Phase2] Created " << DetEl_vector.size() << " ACTS detector elements.\n";
-
 // ==================================================================================
 // Phase-2 Outer Tracker subdetector IDs
 // NOTE: In Phase-2 CMSSW the OT reuses the numeric subdet slots previously held
@@ -227,7 +225,7 @@ public:
     }
     return mtrackCollection;
   }
-
+x
 private:
   MaterialConfig m_cfg;
   std::unique_ptr<TChain> m_inputChain;
@@ -257,7 +255,7 @@ void writeSurfacesObj(const std::vector<std::shared_ptr<Acts::Surface>>& surface
   }
   obj.write(fileName);
   obj.clear();
-} //how is it compiling without errors when there is no semicolon??? 
+} 
 
 Acts::Transform3 GenerateTranslation(double dx, double dy, double dz) {
   return Acts::Transform3::Identity() * Acts::Translation3{Acts::Vector3{dx, dy, dz}};
