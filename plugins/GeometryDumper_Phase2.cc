@@ -1,4 +1,4 @@
-// -*- C++ -*-
+ // -*- C++ -*-
 //
 // Package:    ACTSPhase2InCMSSW/ACTSPhase2InCMSSW
 // Class:      GeometryDumper_Phase2 
@@ -16,6 +16,7 @@
 //
 //
 //FWCore Dependencies 
+
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -276,4 +277,4 @@ void GeometryDumper_Phase2::analyze(const edm::Event& iEvent, const edm::EventSe
  };
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(GeometryDumper_Phase2);
+DEFINE_FWK_MODULE(GeometryDumper_Phase2); 
