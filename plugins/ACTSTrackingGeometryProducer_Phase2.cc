@@ -660,6 +660,8 @@ ACTSTrackingGeometryProducer_Phase2::produce(const ACTSTrackerGeometryRecord& iR
   // ============================================================
   // Loop over all sensitive detector units
   // ============================================================
+  
+  // We are looping over the CMSSW detector modules to change them to ACTS surfaces which are stored in the transformations 
   for (const auto& det : trackerGeom.detUnits()) {
 
     auto&       cmssw_surf = det->surface();
