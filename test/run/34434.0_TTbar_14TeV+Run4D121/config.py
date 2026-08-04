@@ -14,8 +14,8 @@ process.ACTSTrackingGeometryProducer_Phase2 = cms.ESProducer(
     outputObjFile = cms.untracked.string("outputObjFile"),
     outputSvgFile = cms.untracked.string("outputSvgFile"),
     MaterialMaps = cms.untracked.string("MaterialMaps"),
-    rangeZ = cms.untracked.vdouble(0,1),
-    rangeR = cms.untracked.vdouble(0,1)
+    rangeZ = cms.untracked.vdouble(-2650,2650), #The numbers were taken from a plot of CMS Phase 2 tracker 
+    rangeR = cms.untracked.vdouble(1100,1100) #The numbers are approximate 
 )
 # Acts::RangeXD<2, double, std::array> Range({0, 0}, {0, 0});
 
